@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Friends List & Feed</title>
+  <style>
+    /* Simple styles */
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 1rem; }
+    .user-card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; display: flex; align-items: center; gap: 10px; }
+    .user-card img { width: 50px; height: 50px; border-radius: 50%; cursor: pointer; }
+    .friend-btn { margin-left: auto; }
+    .post { border: 1px solid #eee; padding: 10px; margin: 5px 0; }
+    #postsFeed { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>Friends List</h1>
+  <input id="searchInput" type="text" placeholder="Search by name or skill" />
+  <div id="userList"></div>
+
+  <h2>Friends' Posts</h2>
+  <div id="postsFeed"></div>
+
+<script>
+  const users = [
+    { id: 1, name: "Alice", skills: ["JavaScript", "React"], img: "https://i.pravatar.cc/50?img=1" },
+    { id: 2, name: "Bob", skills: ["Python", "Django"], img: "https://i.pravatar.cc/50?img=2" },
+    { id: 3, name: "Charlie", skills: ["Java", "Spring"], img: "https://i.pravatar.cc/50?img=3" },
+  ];
+
+  const posts = [
+    { id: 1, userId: 1, content: "Hello from Alice!", tags: ["greetings"], date: new Date() },
+    { id: 2, userId: 2, content: "Python is great.", tags: ["python"], date: new Date() },
+  ];
+
+  const friends = new Set();
+
+  const userListEl = document.getElementById("userList");
+  const postsFeed = document.getElementById("postsFeed");
+  const searchInput = document.getElementById("searchInput");
+
+  function formatDate(d) {
+    return d.toLocaleString();
+  }
+
+  function renderUsers(filter = "") {
+    userListEl.innerHTML = "";
+    let filteredUsers = users.filter(
+      (user) =>
+        user.name.toLowerCase().includes(filter.toLowerCase()) ||
+        user.skills.some((skill) =>
+          skill.toLowerCase().includes(filter.toLowerCase())
+        )
+    );
+    filteredUsers.forEach((user) => {
+      const userEl = document.createElement("div");
+      userEl.className = "user-card";
+
+      userEl.innerHTML = `
+        <img src="${user.img}" alt="${user.name}" data-id="${user.id}" />
+        <div>
+          <strong>${user.name}</strong><br />
+          <small>${user.skills.join(", ")}</small>
+        </div>
+        <button class="friend-btn" data-id="${user.id}">
+          ${friends.has(user.id) ? "Remove Friend" : "Add Friend"}
+        </button>
+      `;
+
+      userListEl.appendChild(userEl);
+
+      userEl.querySelector(".friend-btn").addEventListener("click", () => toggleFriend(user.id));
+      userEl.querySelector("img").addEventListener("click", () => openProfile(user.id));
+    });
+  }
+
+  function toggleFriend(userId) {
+    if (friends.has(userId)) {
+      friends.delete(userId);
+    } else {
+      friends.add(userId);
+    }
+    renderUsers(searchInput.value);
+    renderPosts();
+  }
+
+  function renderPosts() {
+    postsFeed.innerHTML = "";
+    let friendPosts = posts.filter((post) => friends.has(post.userId));
+    friendPosts.forEach((post) => {
+      const user = users.find((u) => u.id === post.userId);
+      if (!user) return;
+      const postEl = document.createElement("div");
+      postEl.className = "post";
+
+      postEl.innerHTML = `
+        <div><strong>${user.name}</strong> - <small>${formatDate(post.date)}</small></div>
+        <p>${post.content}</p>
+        <small>Tags: ${post.tags.join(", ")}</small>
+      `;
+
+      postsFeed.appendChild(postEl);
+    });
+
+    if (friendPosts.length === 0) {
+      postsFeed.innerHTML = `<p>No posts from friends yet. Add friends to see their posts.</p>`;
+    }
+  }
+
+  function openProfile(userId) {
+    // Redirect to profile page with user ID in URL params
+    window.location.href = `profile.html?userId=${userId}`;
+  }
+
+  searchInput.addEventListener("input", (e) => renderUsers(e.target.value));
+
+  renderUsers();
+  renderPosts();
+</script>
+</body>
+</html>

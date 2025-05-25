@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Virtual Study Room & Meeting Scheduler</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      max-width: 900px;
+      margin: auto;
+      background: #e8f0fe;
+      padding: 20px;
+    }
+    button.back-btn {
+      margin-bottom: 15px;
+      padding: 6px 12px;
+      cursor: pointer;
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #174ea6;
+    }
+    .section {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+    form input, form select, form button, form textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    form button {
+      background: #1a73e8;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    form button:hover {
+      background: #155ab6;
+    }
+    .groups-list {
+      list-style: none;
+      padding: 0;
+    }
+    .group-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+    .group-item:last-child {
+      border-bottom: none;
+    }
+    .meeting-list, .members-list {
+      list-style: none;
+      padding-left: 20px;
+    }
+    .meeting-item {
+      padding: 5px 0;
+      color: #333;
+    }
+    .member-item {
+      padding: 3px 0;
+      color: #555;
+      cursor: pointer;
+    }
+    .member-item:hover {
+      text-decoration: underline;
+      color: #1a73e8;
+    }
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .modal button {
+      margin-top: 15px;
+      padding: 8px 15px;
+      background: #1a73e8;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<button class="back-btn" onclick="history.back()">← Back</button>
+<h1>Virtual Study Room & Meeting Scheduler</h1>
+
+<div class="section">
+  <h2>Create New Study Group</h2>
+  <form id="groupForm">
+    <input type="text" id="groupName" placeholder="Group Name" required />
+    <textarea id="groupDesc" rows="2" placeholder="Brief description" required></textarea>
+    <button type="submit">Create Group</button>
+  </form>
+</div>
+
+<div class="section">
+  <h2>Existing Groups</h2>
+  <ul class="groups-list" id="groupsList">
+    <li>No groups created yet.</li>
+  </ul>
+</div>
+
+<!-- Modal for meeting join -->
+<div class="modal" id="meetingModal">
+  <div class="modal-content">
+    <h3>Join Meeting</h3>
+    <p id="meetingInfo"></p>
+    <button onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+  const groupForm = document.getElementById('groupForm');
+  const groupsList = document.getElementById('groupsList');
+  const meetingModal = document.getElementById('meetingModal');
+  const meetingInfo = document.getElementById('meetingInfo');
+
+  let groups = [];
+
+  // Create new group
+  groupForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('groupName').value.trim();
+    const desc = document.getElementById('groupDesc').value.trim();
+
+    if(!name || !desc){
+      alert('Please fill all fields.');
+      return;
+    }
+
+    // Add group object
+    groups.push({
+      id: Date.now(),
+      name,
+      desc,
+      meetings: [],
+      members: ['You'], // default member = You
+      chat: []
+    });
+
+    groupForm.reset();
+    renderGroups();
+  });
+
+  // Render groups
+  function renderGroups(){
+    if(groups.length === 0){
+      groupsList.innerHTML = '<li>No groups created yet.</li>';
+      return;
+    }
+
+    groupsList.innerHTML = groups.map(group => `
+      <li class="group-item" data-id="${group.id}">
+        <strong>${group.name}</strong> - <em>${group.desc}</em><br/>
+
+        <button onclick="showMeetingForm(${group.id})">Schedule Meeting</button>
+        <button onclick="showChat(${group.id})">Open Chat</button>
+        <button onclick="addMember(${group.id})">Add Friend</button>
+
+        <h4>Meetings:</h4>
+        <ul class="meeting-list" id="meetings-${group.id}">
+          ${group.meetings.length === 0 ? '<li>No meetings scheduled</li>' : group.meetings.map(m => `
+            <li class="meeting-item">
+              ${m.date} at ${m.time} 
+              <button onclick="joinMeeting(${group.id}, '${m.date}', '${m.time}')">Join</button>
+            </li>`).join('')}
+        </ul>
+
+        <h4>Members:</h4>
+        <ul class="members-list" id="members-${group.id}">
+          ${group.members.map(member => `<li class="member-item">${member}</li>`).join('')}
+        </ul>
+
+        <div id="chat-${group.id}" style="display:none; margin-top:10px;">
+          <h4>Group Chat</h4>
+          <div id="chat-messages-${group.id}" style="height: 100px; overflow-y: auto; border: 1px solid #ccc; padding: 8px; background: #fafafa;"></div>
+          <input type="text" placeholder="Type message..." id="chat-input-${group.id}" onkeypress="chatKeyPress(event, ${group.id})" />
+        </div>
+      </li>
+    `).join('');
+  }
+
+  // Show meeting form (prompt)
+  function showMeetingForm(groupId){
+    const date = prompt('Enter meeting date (YYYY-MM-DD):');
+    if(!date) return;
+    const time = prompt('Enter meeting time (HH:MM):');
+    if(!time) return;
+
+    const group = groups.find(g => g.id === groupId);
+    if(group){
+      group.meetings.push({date, time});
+      renderGroups();
+    }
+  }
+
+  // Join meeting (show modal)
+  function joinMeeting(groupId, date, time){
+    meetingInfo.innerText = `You have joined the meeting for group "${groups.find(g => g.id === groupId).name}" on ${date} at ${time}.`;
+    meetingModal.style.display = 'flex';
+  }
+
+  function closeModal(){
+    meetingModal.style.display = 'none';
+  }
+
+  // Add friend (adds "Friend" member)
+  function addMember(groupId){
+    const friendName = prompt('Enter friend\'s name to add:');
+    if(!friendName) return;
+    const group = groups.find(g => g.id === groupId);
+    if(group){
+      if(!group.members.includes(friendName)){
+        group.members.push(friendName);
+        renderGroups();
+      } else {
+        alert('Member already exists in group.');
+      }
+    }
+  }
+
+  // Show chat box
+  function showChat(groupId){
+    const chatDiv = document.getElementById(`chat-${groupId}`);
+    chatDiv.style.display = chatDiv.style.display === 'none' ? 'block' : 'none';
+    renderChat(groupId);
+  }
+
+  // Chat keypress - enter sends message
+  function chatKeyPress(e, groupId){
+    if(e.key === 'Enter'){
+      const input = document.getElementById(`chat-input-${groupId}`);
+      const msg = input.value.trim();
+      if(msg){
+        const group = groups.find(g => g.id === groupId);
+        group.chat.push({user: 'You', text: msg});
+        input.value = '';
+        renderChat(groupId);
+      }
+      e.preventDefault();
+    }
+  }
+
+  // Render chat messages
+  function renderChat(groupId){
+    const group = groups.find(g => g.id === groupId);
+    const chatMessages = document.getElementById(`chat-messages-${groupId}`);
+    chatMessages.innerHTML = group.chat.map(m => `<p><strong>${m.user}:</strong> ${m.text}</p>`).join('');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Initial render

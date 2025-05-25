@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Virtual Meeting & Collaboration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 1rem;
+      background: #f9fafc;
+    }
+    button.back-btn {
+      margin-bottom: 15px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    form.schedule-form {
+      background: white;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      box-shadow: 0 0 8px #ccc;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    form.schedule-form input, form.schedule-form button {
+      padding: 8px;
+      font-size: 1rem;
+    }
+    form.schedule-form input[type="text"] {
+      flex: 2;
+    }
+    form.schedule-form input[type="date"],
+    form.schedule-form input[type="time"] {
+      flex: 1;
+    }
+    form.schedule-form button {
+      flex: 1;
+      background: #0077cc;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .meeting-list {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 0 8px #ccc;
+      margin-bottom: 30px;
+    }
+    .meeting {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      align-items: center;
+    }
+    .meeting:last-child {
+      border-bottom: none;
+    }
+    .meeting-info {
+      flex: 3;
+    }
+    .meeting button.join-btn {
+      background: #28a745;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .chat-section {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 0 8px #ccc;
+      max-height: 350px;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #fafafa;
+      border-radius: 4px;
+    }
+    .chat-message {
+      margin-bottom: 10px;
+    }
+    .chat-message strong {
+      color: #0077cc;
+    }
+    .chat-input {
+      display: flex;
+      gap: 10px;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 8px;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    .chat-input button {
+      padding: 8px 15px;
+      background: #0077cc;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .notification {
+      color: #d9534f;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<button class="back-btn" onclick="history.back()">← Back</button>
+
+<h1>Virtual Meeting & Collaboration</h1>
+
+<form class="schedule-form" id="scheduleForm">
+  <input type="text" id="meetingTitle" placeholder="Meeting Title" required />
+  <input type="date" id="meetingDate" required />
+  <input type="time" id="meetingTime" required />
+  <button type="submit">Schedule</button>
+</form>
+
+<div class="meeting-list" id="meetingList">
+  <h3>Upcoming Meetings</h3>
+</div>
+
+<div class="chat-section">
+  <h3>Group Chat</h3>
+  <div class="notification" id="chatNotification" style="display:none;">New message!</div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="Type a message..." />
+    <button id="sendBtn">Send</button>
+  </div>
+</div>
+
+<script>
+  // Meetings storage
+  let meetings = [];
+
+  const scheduleForm = document.getElementById('scheduleForm');
+  const meetingList = document.getElementById('meetingList');
+
+  const chatMessages = document.getElementById('chatMessages');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const chatNotification = document.getElementById('chatNotification');
+
+  // Current user name for chat
+  const currentUser = "You";
+
+  // Schedule meeting
+  scheduleForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const title = document.getElementById('meetingTitle').value.trim();
+    const date = document.getElementById('meetingDate').value;
+    const time = document.getElementById('meetingTime').value;
+
+    if(!title || !date || !time) return alert("Please fill all fields.");
+
+    meetings.push({id: Date.now(), title, date, time});
+    renderMeetings();
+    scheduleForm.reset();
+  });
+
+  // Render meetings
+  function renderMeetings(){
+    let html = "";
+    if(meetings.length === 0){
+      html = "<p>No meetings scheduled yet.</p>";
+    } else {
+      meetings.forEach(m => {
+        html += `
+          <div class="meeting">
+            <div class="meeting-info"><strong>${m.title}</strong><br>${m.date} at ${m.time}</div>
+            <button class="join-btn" onclick="joinMeeting(${m.id})">Join</button>
+          </div>
+        `;
+      });
+    }
+    meetingList.innerHTML = `<h3>Upcoming Meetings</h3>` + html;
+  }
+
+  // Join meeting simulation
+  function joinMeeting(id){
+    const meeting = meetings.find(m => m.id === id);
+    if(meeting){
+      alert(`Joining meeting: "${meeting.title}" scheduled on ${meeting.date} at ${meeting.time}`);
+    } else {
+      alert("Meeting not found.");
+    }
+  }
+
+  // Chat messages store
+  let messages = [];
+
+  // Render chat messages
+  function renderChat(){
+    chatMessages.innerHTML = messages.map(m => 
+      `<div class="chat-message"><strong>${m.user}:</strong> ${m.text}</div>`
+    ).join("");
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Send chat message
+  function sendMessage(){
+    const text = chatInput.value.trim();
+    if(text === "") return;
+    messages.push({user: currentUser, text});
+    chatInput.value = "";
+    renderChat();
+    chatNotification.style.display = "none";
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', e => {
+    if(e.key === "Enter"){
+      sendMessage();
+      e.preventDefault();
+    }
+  });
+
+  // Simulate other users sending messages every 10-15 sec
+  const otherUsers = ["Aisha", "Ravi", "Sneha", "Karan", "Neha"];
+  setInterval(() => {
+    const randomUser = otherUsers[Math.floor(Math.random() * otherUsers.length)];
+    const randomMsgs = [
+      "Hello everyone!",
+      "Any updates on the project?",
+      "Let's start the meeting soon.",
+      "I have shared my code.",
+      "Great work team!",
+      "Can someone help me with this issue?"
+    ];
+    const randomText = randomMsgs[Math.floor(Math.random() * randomMsgs.length)];
+    messages.push({user: randomUser, text: randomText});
+    renderChat();
+    chatNotification.style.display = "block";
+    setTimeout(() => {
+      chatNotification.style.display = "none";
+    }, 3000);
+  }, 12000);
+
+  renderMeetings();
+  renderChat();
+</script>
+
+</body>
+</html>

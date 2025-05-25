@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Student Feed - Student Networking Platform</title>
+<style>
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    color: #222;
+  }
+  a {
+    text-decoration: none;
+    color: #3b5998;
+  }
+  /* Header */
+  header {
+    background: linear-gradient(90deg, #7b2ff7, #f107a3);
+    color: white;
+    padding: 15px 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 {
+    font-weight: 700;
+    font-size: 1.7rem;
+    margin: 0;
+  }
+  nav a {
+    margin-left: 20px;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  nav a:hover {
+    text-decoration: underline;
+  }
+  /* Container */
+  .container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 20px 60px;
+  }
+  /* Feed */
+  .feed-post {
+    background: white;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 5px rgb(0 0 0 / 0.1);
+  }
+  .post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .post-header img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+  }
+  .post-user {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+  .post-time {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: #666;
+  }
+  .post-content {
+    font-size: 1rem;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+  .post-image {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  .post-image:hover {
+    transform: scale(1.02);
+  }
+  /* Post actions */
+  .post-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .post-actions button {
+    background: transparent;
+    border: none;
+    color: #7b2ff7;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+  }
+  .post-actions button:hover {
+    color: #f107a3;
+  }
+  /* Like icon */
+  .like-icon {
+    font-size: 1.2rem;
+    user-select: none;
+  }
+  /* New Post form */
+  .new-post-form {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 5px rgb(0 0 0 / 0.1);
+  }
+  .new-post-form textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 70px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    font-family: inherit;
+    margin-bottom: 12px;
+    transition: border-color 0.3s ease;
+  }
+  .new-post-form textarea:focus {
+    outline: none;
+    border-color: #7b2ff7;
+  }
+  .new-post-form button {
+    background: #7b2ff7;
+    border: none;
+    color: white;
+    padding: 10px 22px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .new-post-form button:disabled {
+    background: #b5a7f7;
+    cursor: not-allowed;
+  }
+  .new-post-form button:hover:not(:disabled) {
+    background: #f107a3;
+  }
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 18px 10px;
+    font-size: 0.9rem;
+    color: #888;
+    background: #fafafa;
+    border-top: 1px solid #ddd;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Student Network</h1>
+  <nav>
+    <a href="page1.html">Home</a>
+    <a href="page2.html">Career Roadmap</a>
+    <a href="page3.html" style="text-decoration: underline;">Feed</a>
+    <a href="page4.html">Profile</a>
+  </nav>
+</header>
+
+<div class="container">
+
+  <section class="new-post-form">
+    <textarea id="postText" placeholder="What's on your mind?" maxlength="280"></textarea>
+    <button id="postBtn" disabled>Post</button>
+  </section>
+
+  <section id="feedPosts">
+    <!-- Posts will load here -->
+  </section>
+</div>
+
+<footer>
+  &copy; 2025 Student Networking Platform. All rights reserved.
+</footer>
+
+<script>
+  // Sample student posts data
+  const postsData = [
+    {
+      id: 1,
+      userName: 'Anurag Kumar',
+      userImg: 'https://randomuser.me/api/portraits/men/45.jpg',
+      time: '2 hrs ago',
+      content: 'Excited to share that I got an internship at Quantum University research lab!',
+      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80',
+      likes: 12,
+      liked: false,
+    },
+    {
+      id: 2,
+      userName: 'Priya Sharma',
+      userImg: 'https://randomuser.me/api/portraits/women/65.jpg',
+      time: '5 hrs ago',
+      content: 'Can anyone suggest resources for learning advanced C++ concepts?',
+      image: '',
+      likes: 8,
+      liked: false,
+    },
+    {
+      id: 3,
+      userName: 'Rahul Verma',
+      userImg: 'https://randomuser.me/api/portraits/men/23.jpg',
+      time: '1 day ago',
+      content: 'Just finished a cool project on AI chatbots. Happy to help anyone interested!',
+      image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80',
+      likes: 19,
+      liked: false,
+    },
+  ];
+
+  const feedPosts = document.getElementById('feedPosts');
+  const postBtn = document.getElementById('postBtn');
+  const postText = document.getElementById('postText');
+
+  // Render posts
+  function renderPosts() {
+    feedPosts.innerHTML = '';
+    postsData.forEach(post => {
+      const postEl = document.createElement('article');
+      postEl.classList.add('feed-post');
+      postEl.innerHTML = `
+        <div class="post-header">
+          <img src="${post.userImg}" alt="${post.userName}" />
+          <h3 class="post-user">${post.userName}</h3>
+          <span class="post-time">${post.time}</span>
+        </div>
+        <p class="post-content">${post.content}</p>
+        ${post.image ? `<img src="${post.image}" alt="Post Image" class="post-image" />` : ''}
+        <div class="post-actions">
+          <button class="like-btn" data-id="${post.id}">
+            <span class="like-icon">${post.liked ? '❤️' : '🤍'}</span> Like (<span class="like-count">${post.likes}</span>)
+          </button>
+          <button class="comment-btn" disabled>Comment</button>
+        </div>
+      `;
+      feedPosts.appendChild(postEl);
+    });
+  }
+
+  // Enable post button when textarea has text
+  postText.addEventListener('input', () => {
+    postBtn.disabled = postText.value.trim() === '';
+  });
+
+  // Add new post
+  postBtn.addEventListener('click', () => {
+    const newPost = {
+      id: Date.now(),
+      userName: 'You',
+      userImg: 'https://randomuser.me/api/portraits/lego/1.jpg',
+      time: 'Just now',
+      content: postText.value.trim(),
+      image: '',
+      likes: 0,
+      liked: false,
+    };
+    postsData.unshift(newPost); // add at top
+    postText.value = '';
+    postBtn.disabled = true;
+    renderPosts();
+  });
+
+  // Like/unlike toggle
+  feedPosts.addEventListener('click', (e) => {
+    if (e.target.closest('.like-btn')) {
+      const btn = e.target.closest('.like-btn');
+      const id = Number(btn.dataset.id);
+      const post = postsData.find(p => p.id === id);
+      if (!post) return;
+      post.liked = !post.liked;
+      post.likes += post.liked ? 1 : -1;
+      renderPosts();
+    }
+  });
+
+  // Initial render
+  renderPosts();
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Event & Workshop Hub</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      background-color: #eef4fc;
+      padding: 20px;
+      color: #222;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #0652dd;
+    }
+    .back-btn {
+      background-color: #0652dd;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgb(0 0 0 / 0.1);
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: 600;
+    }
+    input[type="text"], input[type="date"], textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+    button {
+      background-color: #0652dd;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      margin-top: 15px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #043a9a;
+    }
+    .event-list {
+      list-style: none;
+      padding: 0;
+    }
+    .event-item {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .event-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #042f66;
+      margin-bottom: 5px;
+    }
+    .event-date {
+      color: #3d5af1;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .event-desc {
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .event-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .event-actions button {
+      background-color: #1976d2;
+      padding: 6px 14px;
+      font-weight: 600;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+      font-size: 0.9rem;
+    }
+    .event-actions button:hover {
+      background-color: #145ea8;
+    }
+    .likes-count {
+      font-weight: 600;
+      color: #0b3d91;
+      user-select: none;
+    }
+    .comments-section {
+      margin-top: 10px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+    .comment {
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      border-bottom: 1px dashed #ddd;
+      padding-bottom: 6px;
+    }
+    .comment-form {
+      margin-top: 10px;
+    }
+    .comment-form input {
+      width: 70%;
+      padding: 8px;
+      margin-right: 10px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+    }
+    .comment-form button {
+      padding: 8px 14px;
+      border-radius: 6px;
+    }
+    .registered-text {
+      font-weight: 600;
+      color: green;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<button class="back-btn" onclick="history.back()">← Back</button>
+
+<h1>Event & Workshop Hub</h1>
+
+<form id="eventForm">
+  <label for="title">Event Title:</label>
+  <input type="text" id="title" placeholder="Enter event title" required />
+
+  <label for="date">Date:</label>
+  <input type="date" id="date" required />
+
+  <label for="desc">Description:</label>
+  <textarea id="desc" rows="4" placeholder="Describe the event" required></textarea>
+
+  <button type="submit">Create Event</button>
+</form>
+
+<ul id="eventList" class="event-list">
+  <li>No events created yet.</li>
+</ul>
+
+<script>
+  const eventForm = document.getElementById('eventForm');
+  const eventList = document.getElementById('eventList');
+
+  let events = JSON.parse(localStorage.getItem('events')) || [];
+
+  function saveEvents() {
+    localStorage.setItem('events', JSON.stringify(events));
+  }
+
+  function renderEvents() {
+    if (events.length === 0) {
+      eventList.innerHTML = '<li>No events created yet.</li>';
+      return;
+    }
+
+    eventList.innerHTML = events
+      .map(
+        (event, idx) => `
+      <li class="event-item" data-index="${idx}">
+        <div class="event-title">${event.title}</div>
+        <div class="event-date">${event.date}</div>
+        <div class="event-desc">${event.desc}</div>
+        <div class="event-actions">
+          <button onclick="likeEvent(${idx})">👍 Like</button>
+          <span class="likes-count">${event.likes || 0} Likes</span>
+          <button onclick="registerEvent(${idx})" ${event.registered ? 'disabled' : ''}>${event.registered ? 'Registered' : 'Register'}</button>
+          <button onclick="toggleComments(${idx})">💬 Comments (${(event.comments && event.comments.length) || 0})</button>
+          <button onclick="shareEvent(${idx})">🔗 Share</button>
+        </div>
+        <div class="comments-section" id="comments-${idx}" style="display:none;">
+          <div class="comments-list">
+            ${(event.comments || []).map(c => `<div class="comment">${c}</div>`).join('')}
+          </div>
+          <form class="comment-form" onsubmit="addComment(event, ${idx})">
+            <input type="text" placeholder="Add a comment" required />
+            <button type="submit">Post</button>
+          </form>
+        </div>
+      </li>
+    `
+      )
+      .join('');
+  }
+
+  eventForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const title = document.getElementById('title').value.trim();
+    const date = document.getElementById('date').value;
+    const desc = document.getElementById('desc').value.trim();
+
+    if (!title || !date || !desc) return alert('Please fill all fields.');
+
+    events.push({
+      title,
+      date,
+      desc,
+      likes: 0,
+      comments: [],
+      registered: false
+    });
+
+    saveEvents();
+    renderEvents();
+    eventForm.reset();
+  });
+
+  function likeEvent(idx) {
+    events[idx].likes = (events[idx].likes || 0) + 1;
+    saveEvents();
+    renderEvents();
+  }
+
+  function registerEvent(idx) {
+    if (events[idx].registered) return;
+    events[idx].registered = true;
+    saveEvents();
+    alert(`You registered for "${events[idx].title}"!`);
+    renderEvents();
+  }
+
+  function toggleComments(idx) {
+    const section = document.getElementById(`comments-${idx}`);
+    if (section.style.display === 'none') {
+      section.style.display = 'block';
+    } else {
+      section.style.display = 'none';
+    }
+  }
+
+  function addComment(e, idx) {
+    e.preventDefault();
+    const input = e.target.querySelector('input');
+    const comment = input.value.trim();
+    if (!comment) return;
+    if (!events[idx].comments) events[idx].comments = [];
+    events[idx].comments.push(comment);
+    saveEvents();
+    renderEvents();
+  }
+
+  function shareEvent(idx) {
+    const url = window.location.href;
+    const eventTitle = events[idx].title;
+    const shareText = `Check out this event: "${eventTitle}" on ${url}`;
+    if (navigator.share) {
+      navigator.share({
+        title: eventTitle,
+        text: shareText,
+        url: url
+      }).catch(() => alert('Sharing failed'));
+    } else {
+      prompt('Copy this link to share:', url);
+    }
+  }
+
+  renderEvents();
+</script>
+
+</body>
+</html>

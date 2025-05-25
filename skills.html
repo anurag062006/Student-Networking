@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Skills & Knowledge Sharing</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 1rem;
+      background: #eef6f9;
+    }
+    button.back-btn {
+      margin-bottom: 15px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .add-skill {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .add-skill input {
+      flex: 1;
+      padding: 8px;
+      font-size: 1rem;
+    }
+    .add-skill button {
+      padding: 8px 16px;
+      cursor: pointer;
+      background: #0077cc;
+      border: none;
+      color: white;
+      border-radius: 4px;
+    }
+    .search-box {
+      margin-bottom: 20px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    .user-list {
+      background: white;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 0 6px #ccc;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .user {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+    }
+    .user:last-child {
+      border-bottom: none;
+    }
+    .user-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .skills {
+      margin-bottom: 8px;
+    }
+    .skill {
+      display: inline-block;
+      background: #0077cc;
+      color: white;
+      padding: 3px 8px;
+      margin: 0 5px 5px 0;
+      border-radius: 12px;
+      font-size: 0.9rem;
+    }
+    .skill-post {
+      background: #f0f8ff;
+      padding: 8px;
+      border-radius: 4px;
+      margin-top: 5px;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    .like-btn {
+      background: #eee;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+      margin-right: 10px;
+      user-select: none;
+    }
+    .like-btn.liked {
+      background: #0077cc;
+      color: white;
+    }
+    .comment-section {
+      margin-top: 8px;
+    }
+    .comment {
+      font-size: 0.85rem;
+      padding: 3px 0;
+      border-bottom: 1px solid #ddd;
+    }
+    .comment-input {
+      display: flex;
+      margin-top: 5px;
+      gap: 8px;
+    }
+    .comment-input input {
+      flex: 1;
+      padding: 6px;
+      font-size: 0.9rem;
+    }
+    .comment-input button {
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      border: none;
+      background: #0077cc;
+      color: white;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<button class="back-btn" onclick="history.back()">← Back</button>
+
+<h1>Skills & Knowledge Sharing</h1>
+
+<div class="add-skill">
+  <input type="text" id="newSkill" placeholder="Add your skill here..." />
+  <button id="addSkillBtn">Add Skill</button>
+</div>
+
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="Search skills or users..." />
+</div>
+
+<div class="user-list" id="userList"></div>
+
+<script>
+  // Sample users with skills and posts
+  let users = [
+    {id: 1, name: "Aisha", skills: ["JavaScript", "React", "Node.js"], posts: [
+      {id: 101, text: "Just learned React Hooks!", likes: 0, likedByUser: false, comments: []}
+    ]},
+    {id: 2, name: "Ravi", skills: ["Python", "Machine Learning", "Data Science"], posts: [
+      {id: 102, text: "Sharing my ML project insights.", likes: 0, likedByUser: false, comments: []}
+    ]},
+    {id: 3, name: "Sneha", skills: ["Graphic Design", "Photoshop", "Illustrator"], posts: [
+      {id: 103, text: "New logo design tips!", likes: 0, likedByUser: false, comments: []}
+    ]},
+    {id: 4, name: "Karan", skills: ["C++", "Algorithms", "Competitive Programming"], posts: [
+      {id: 104, text: "Algorithm challenge solved!", likes: 0, likedByUser: false, comments: []}
+    ]},
+    {id: 5, name: "Neha", skills: ["Digital Marketing", "SEO", "Content Writing"], posts: [
+      {id: 105, text: "SEO basics explained.", likes: 0, likedByUser: false, comments: []}
+    ]}
+  ];
+
+  const userList = document.getElementById('userList');
+  const newSkillInput = document.getElementById('newSkill');
+  const addSkillBtn = document.getElementById('addSkillBtn');
+  const searchInput = document.getElementById('searchInput');
+
+  // Current user (for demo add skill)
+  const currentUserId = 1;
+
+  function renderUsers(filter = "") {
+    userList.innerHTML = "";
+
+    // Filter users based on search
+    const filteredUsers = users.filter(u => {
+      const nameMatch = u.name.toLowerCase().includes(filter.toLowerCase());
+      const skillMatch = u.skills.some(s => s.toLowerCase().includes(filter.toLowerCase()));
+      return nameMatch || skillMatch || filter === "";
+    });
+
+    if(filteredUsers.length === 0) {
+      userList.innerHTML = "<p>No users found.</p>";
+      return;
+    }
+
+    filteredUsers.forEach(user => {
+      const userDiv = document.createElement('div');
+      userDiv.className = 'user';
+
+      userDiv.innerHTML = `
+        <div class="user-name">${user.name}</div>
+        <div class="skills">${user.skills.map(s => `<span class="skill">${s}</span>`).join('')}</div>
+        <div class="posts">
+          ${user.posts.map(post => `
+            <div class="skill-post" data-userid="${user.id}" data-postid="${post.id}">
+              <div>${post.text}</div>
+              <button class="like-btn ${post.likedByUser ? "liked" : ""}">${post.likes} Like${post.likes !== 1 ? "s" : ""}</button>
+              <div class="comment-section">
+                ${post.comments.map(c => `<div class="comment">${c}</div>`).join('')}
+                <div class="comment-input">
+                  <input placeholder="Add comment..." />
+                  <button>Add</button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Add event listeners for likes and comments
+      userDiv.querySelectorAll('.skill-post').forEach(postDiv => {
+        const userId = +postDiv.dataset.userid;
+        const postId = +postDiv.dataset.postid;
+
+        // Like button
+        const likeBtn = postDiv.querySelector('.like-btn');
+        likeBtn.onclick = () => {
+          const userObj = users.find(u => u.id === userId);
+          const postObj = userObj.posts.find(p => p.id === postId);
+          if(postObj.likedByUser){
+            postObj.likes--;
+          } else {
+            postObj.likes++;
+          }
+          postObj.likedByUser = !postObj.likedByUser;
+          renderUsers(searchInput.value);
+        };
+
+        // Comment add
+        const commentInput = postDiv.querySelector('.comment-input input');
+        const commentBtn = postDiv.querySelector('.comment-input button');
+        commentBtn.onclick = () => {
+          const text = commentInput.value.trim();
+          if(text){
+            const userObj = users.find(u => u.id === userId);
+            const postObj = userObj.posts.find(p => p.id === postId);
+            postObj.comments.push(text);
+            commentInput.value = "";
+            renderUsers(searchInput.value);
+          }
+        };
+      });
+
+      userList.appendChild(userDiv);
+    });
+  }
+
+  addSkillBtn.onclick = () => {
+    const skill = newSkillInput.value.trim();
+    if(skill === "") return alert("Please enter a skill.");
+    const user = users.find(u => u.id === currentUserId);
+    if(!user.skills.includes(skill)){
+      user.skills.push(skill);
+      alert(`Skill "${skill}" added!`);
+      newSkillInput.value = "";
+      renderUsers(searchInput.value);
+    } else {
+      alert("Skill already added.");
+    }
+  };
+
+  searchInput.oninput = () => {
+    renderUsers(searchInput.value);
+  };
+
+  renderUsers();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Skill Marketplace & Help Requests</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      background: #f5f7fa;
+      padding: 20px;
+    }
+    button.back-btn {
+      margin-bottom: 15px;
+      padding: 6px 12px;
+      cursor: pointer;
+      background: #555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    h1 {
+      text-align: center;
+      color: #222;
+    }
+    .search-bar {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .search-bar input {
+      width: 80%;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .section {
+      background: white;
+      padding: 15px;
+      margin-bottom: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .section h2 {
+      margin-bottom: 15px;
+      color: #0077cc;
+    }
+    form input, form textarea, form button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    form button {
+      background: #0077cc;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    form button:hover {
+      background: #005fa3;
+    }
+    .help-request {
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+    .help-request:last-child {
+      border-bottom: none;
+    }
+    .help-request h3 {
+      margin: 0;
+      color: #333;
+    }
+    .help-request .skill-tag {
+      display: inline-block;
+      background: #0077cc;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin: 5px 0;
+    }
+    .help-request p {
+      margin: 5px 0 8px 0;
+    }
+    .actions {
+      display: flex;
+      gap: 15px;
+      font-size: 0.9rem;
+      color: #555;
+      cursor: pointer;
+      user-select: none;
+    }
+    .actions span:hover {
+      color: #0077cc;
+    }
+    .comments-section {
+      margin-top: 10px;
+      padding-left: 15px;
+      border-left: 2px solid #0077cc;
+    }
+    .comment {
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+    .comment strong {
+      color: #0077cc;
+    }
+  </style>
+</head>
+<body>
+
+<button class="back-btn" onclick="history.back()">← Back</button>
+
+<h1>Skill Marketplace & Help Requests</h1>
+
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Search skills or requests..." />
+</div>
+
+<div class="section">
+  <h2>Post a Help Request</h2>
+  <form id="helpForm">
+    <input type="text" id="helpSkill" placeholder="Skill needed (e.g. JavaScript, Python)" required />
+    <input type="text" id="helpTitle" placeholder="Request Title" required />
+    <textarea id="helpDescription" rows="3" placeholder="Describe your problem or help needed..." required></textarea>
+    <button type="submit">Post Request</button>
+  </form>
+</div>
+
+<div class="section" id="requestsSection">
+  <h2>Help Requests</h2>
+  <div id="requestsList">
+    <p>No help requests posted yet.</p>
+  </div>
+</div>
+
+<script>
+  const helpForm = document.getElementById('helpForm');
+  const requestsList = document.getElementById('requestsList');
+  const searchInput = document.getElementById('searchInput');
+
+  // Data for requests
+  let requests = [];
+
+  // Post a help request
+  helpForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const skill = document.getElementById('helpSkill').value.trim();
+    const title = document.getElementById('helpTitle').value.trim();
+    const description = document.getElementById('helpDescription').value.trim();
+
+    if(!skill || !title || !description){
+      alert('Please fill all fields.');
+      return;
+    }
+
+    const newRequest = {
+      id: Date.now(),
+      skill,
+      title,
+      description,
+      likes: 0,
+      comments: [],
+      shares: 0
+    };
+
+    requests.unshift(newRequest);
+    renderRequests();
+    helpForm.reset();
+  });
+
+  // Render all requests
+  function renderRequests(filter = ''){
+    let filtered = requests;
+    if(filter){
+      const f = filter.toLowerCase();
+      filtered = requests.filter(r =>
+        r.skill.toLowerCase().includes(f) ||
+        r.title.toLowerCase().includes(f) ||
+        r.description.toLowerCase().includes(f)
+      );
+    }
+
+    if(filtered.length === 0){
+      requestsList.innerHTML = '<p>No matching requests found.</p>';
+      return;
+    }
+
+    requestsList.innerHTML = filtered.map(r => `
+      <div class="help-request" data-id="${r.id}">
+        <h3>${r.title}</h3>
+        <span class="skill-tag">${r.skill}</span>
+        <p>${r.description}</p>
+        <div class="actions">
+          <span class="like-btn" onclick="likeRequest(${r.id})">👍 ${r.likes}</span>
+          <span class="comment-btn" onclick="toggleComments(${r.id})">💬 ${r.comments.length}</span>
+          <span class="share-btn" onclick="shareRequest(${r.id})">🔗 ${r.shares}</span>
+        </div>
+        <div class="comments-section" id="comments-${r.id}" style="display:none;">
+          ${r.comments.length === 0 ? '<p>No comments yet.</p>' : ''}
+          <div id="comments-list-${r.id}">
+            ${r.comments.map(c => `<div class="comment"><strong>${c.user}:</strong> ${c.text}</div>`).join('')}
+          </div>
+          <input type="text" placeholder="Add a comment..." id="comment-input-${r.id}" onkeypress="commentKeyPress(event, ${r.id})" />
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Like request
+  function likeRequest(id){
+    const req = requests.find(r => r.id === id);
+    if(req){
+      req.likes++;
+      renderRequests(searchInput.value);
+    }
+  }
+
+  // Toggle comments visibility
+  function toggleComments(id){
+    const commentsSection = document.getElementById(`comments-${id}`);
+    if(commentsSection.style.display === 'none'){
+      commentsSection.style.display = 'block';
+    } else {
+      commentsSection.style.display = 'none';
+    }
+  }
+
+  // Add comment on enter key
+  function commentKeyPress(e, id){
+    if(e.key === 'Enter'){
+      const input = document.getElementById(`comment-input-${id}`);
+      const text = input.value.trim();
+      if(text){
+        const req = requests.find(r => r.id === id);
+        req.comments.push({user: 'You', text});
+        input.value = '';
+        renderRequests(searchInput.value);
+        toggleComments(id); // To refresh and show updated comments
+        toggleComments(id); // Keep it open after re-render
+      }
+      e.preventDefault();
+    }
+  }
+
+  // Share request (just increments share count for demo)
+  function shareRequest(id){
+    const req = requests.find(r => r.id === id);
+    if(req){
+      req.shares++;
+      alert('Request shared! (Simulation)');
+      renderRequests(searchInput.value);
+    }
+  }
+
+  // Search requests
+  searchInput.addEventListener('input', () => {
+    renderRequests(searchInput.value);
+  });
+
+  renderRequests();
+</script>
+
+</body>
+</html>

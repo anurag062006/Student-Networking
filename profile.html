@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Profile</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 1rem; }
+    img { border-radius: 50%; width: 120px; height: 120px; }
+    .back-btn { margin-bottom: 20px; }
+    .post { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+
+<button class="back-btn" onclick="history.back()">← Back</button>
+
+<div id="profile"></div>
+<h3>User's Posts</h3>
+<div id="userPosts"></div>
+
+<script>
+  // Same users and posts data (ideally, in real app use API or shared file)
+  const users = [
+    { id: 1, name: "Alice", skills: ["JavaScript", "React"], img: "https://i.pravatar.cc/120?img=1" },
+    { id: 2, name: "Bob", skills: ["Python", "Django"], img: "https://i.pravatar.cc/120?img=2" },
+    { id: 3, name: "Charlie", skills: ["Java", "Spring"], img: "https://i.pravatar.cc/120?img=3" },
+  ];
+
+  const posts = [
+    { id: 1, userId: 1, content: "Hello from Alice!", tags: ["greetings"], date: new Date() },
+    { id: 2, userId: 2, content: "Python is great.", tags: ["python"], date: new Date() },
+    { id: 3, userId: 1, content: "I love React!", tags: ["react"], date: new Date() },
+  ];
+
+  function formatDate(d) {
+    return d.toLocaleString();
+  }
+
+  // Get userId from URL
+  const params = new URLSearchParams(window.location.search);
+  const userId = Number(params.get("userId"));
+
+  const user = users.find(u => u.id === userId);
+
+  const profileDiv = document.getElementById("profile");
+  const userPostsDiv = document.getElementById("userPosts");
+
+  if (!user) {
+    profileDiv.innerHTML = "<p>User not found.</p>";
+  } else {
+    profileDiv.innerHTML = `
+      <img src="${user.img}" alt="${user.name}" />
+      <h2>${user.name}</h2>
+      <p><strong>Skills:</strong> ${user.skills.join(", ")}</p>
+    `;
+
+    const userPosts = posts.filter(post => post.userId === userId);
+    if (userPosts.length === 0) {
+      userPostsDiv.innerHTML = "<p>No posts by this user yet.</p>";
+    } else {
+      userPosts.forEach(post => {
+        const postEl = document.createElement("div");
+        postEl.className = "post";
+        postEl.innerHTML = `
+          <p>${post.content}</p>
+          <small>Tags: ${post.tags.join(", ")}</small><br/>
+          <small>Date: ${formatDate(post.date)}</small>
+        `;
+        userPostsDiv.appendChild(postEl);
+      });
+    }
+  }
+</script>
+</body>
+</html>

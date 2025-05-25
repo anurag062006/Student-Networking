@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Virtual Classroom | StudentConnect</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6fc;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #6c5ce7;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    nav a {
+      margin-left: 20px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    section {
+      padding: 20px;
+      margin: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .card {
+      background: #eef1ff;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+    }
+
+    button {
+      background: #6c5ce7;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      margin-top: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #5a4de0;
+    }
+
+    .notes ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .notes li {
+      margin: 10px 0;
+    }
+
+    .chatbox {
+      background: #eef3ff;
+    }
+
+    #chatMessages {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+      height: 150px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    input[type="file"], input[type="text"] {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 60%;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📚 Virtual Classroom</h1>
+    <nav>
+      <a href="index.html">🏠 Home</a>
+      <a href="virtual-classroom.html">🎓 Classroom</a>
+      <a href="student-feed.html">📰 Feed</a>
+      <a href="profile.html">👤 Profile</a>
+    </nav>
+  </header>
+
+  <section class="sessions">
+    <h2>Live Sessions</h2>
+    <div class="card">
+      <h3>Math Class - Algebra</h3>
+      <p>🕒 10:00 AM - 11:00 AM</p>
+      <button onclick="alert('📡 Joining Algebra class...')">Join Now</button>
+    </div>
+    <div class="card">
+      <h3>Physics - Thermodynamics</h3>
+      <p>🕒 12:00 PM - 1:00 PM</p>
+      <button onclick="alert('📡 Joining Physics class...')">Join Now</button>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2>📝 Class Notes</h2>
+    <ul>
+      <li><a href="#">📄 Algebra Basics - PDF</a></li>
+      <li><a href="#">📄 Thermodynamics Notes - DOCX</a></li>
+    </ul>
+  </section>
+
+  <section class="assignment">
+    <h2>📤 Upload Assignment</h2>
+    <input type="file" id="fileInput">
+    <button onclick="submitAssignment()">Submit</button>
+  </section>
+
+  <section class="chatbox">
+    <h2>💬 Live Chat</h2>
+    <div id="chatMessages"></div>
+    <input type="text" id="chatInput" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+  </section>
+
+  <script>
+    function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const chat = document.getElementById('chatMessages');
+      if (input.value.trim() !== '') {
+        const msg = document.createElement('p');
+        msg.textContent = '🧑 You: ' + input.value;
+        chat.appendChild(msg);
+        input.value = '';
+        chat.scrollTop = chat.scrollHeight;
+      }
+    }
+
+    function submitAssignment() {
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput.files.length > 0) {
+        alert("✅ Assignment '" + fileInput.files[0].name + "' submitted successfully!");
+      } else {
+        alert("❗ Please select a file first.");
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+ <!-- FULLY EXPANDED AND FUNCTIONAL ROADMAP PAGE -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Career Roadmap | ConnectSphere</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      color: #6a11cb;
+      text-align: center;
+    }
+    .form-section {
+      max-width: 800px;
+      background: white;
+      margin: 2rem auto;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+    select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-weight: bold;
+      margin-top: 1.5rem;
+    }
+    button:hover {
+      background: linear-gradient(to right, #5a0fb9, #1c65e0);
+    }
+    .roadmap-result {
+      background: #fff;
+      margin-top: 2rem;
+      padding: 1.5rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+    .roadmap-result h2 {
+      color: #2575fc;
+      margin-bottom: 1rem;
+    }
+    .roadmap-result ul {
+      padding-left: 1.5rem;
+    }
+    .roadmap-result li {
+      margin-bottom: 0.7rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Career Roadmap Generator</h1>
+  <section class="form-section">
+    <label for="branch">Select Your Branch:</label>
+    <select id="branch">
+      <option value="">-- Choose Branch --</option>
+      <option value="cse">Computer Science</option>
+      <option value="mech">Mechanical Engineering</option>
+      <option value="civil">Civil Engineering</option>
+      <option value="ai">Artificial Intelligence</option>
+      <option value="cyber">Cyber Security</option>
+      <option value="data">Data Science</option>
+      <option value="elec">Electrical Engineering</option>
+      <option value="it">Information Technology</option>
+    </select>
+
+    <label for="year">Select Your Year:</label>
+    <select id="year">
+      <option value="">-- Choose Year --</option>
+      <option value="1">1st Year</option>
+      <option value="2">2nd Year</option>
+      <option value="3">3rd Year</option>
+      <option value="4">4th Year</option>
+    </select>
+
+    <label for="semester">Select Your Semester:</label>
+    <select id="semester">
+      <option value="">-- Choose Semester --</option>
+      <option value="1">Semester 1</option>
+      <option value="2">Semester 2</option>
+      <option value="3">Semester 3</option>
+      <option value="4">Semester 4</option>
+      <option value="5">Semester 5</option>
+      <option value="6">Semester 6</option>
+      <option value="7">Semester 7</option>
+      <option value="8">Semester 8</option>
+    </select>
+
+    <label for="goal">Choose Your Goal:</label>
+    <select id="goal">
+      <option value="">-- Choose Goal --</option>
+      <option value="placement">Placement Ready</option>
+      <option value="internship">Internship Focused</option>
+      <option value="research">Research/PhD Path</option>
+      <option value="startup">Startup/Entrepreneurship</option>
+      <option value="gate">GATE</option>
+      <option value="ies">IES</option>
+      <option value="upsc">UPSC</option>
+      <option value="govt">Govt. Engineer Jobs</option>
+      <option value="automobile">Automobile Sector</option>
+    </select>
+
+    <button onclick="generateRoadmap()">Generate Personalized Roadmap</button>
+
+    <div class="roadmap-result" id="result" style="display:none;"></div>
+  </section>
+
+  <script>
+    const suggestions = {
+      cse: {
+        1: {
+          placement: ["C/C++ basics", "Intro to web development", "Join coding clubs"],
+          internship: ["Learn GitHub", "Freelance websites", "Mini projects"],
+          research: ["CS fundamentals", "Start reading IEEE papers", "Find mentor"],
+          gate: ["DBMS & OS", "NPTEL courses", "Previous year papers"]
+        }
+      },
+      mech: {
+        1: {
+          placement: ["Intro to Workshop", "Basic Thermodynamics"],
+          govt: ["Engg. Mechanics", "Intro to IES syllabus"]
+        },
+        2: {
+          placement: ["AutoCAD basics", "Strength of Materials"],
+          automobile: ["Design principles", "Intro to EVs"],
+          govt: ["Thermodynamics", "IES Mech syllabus"]
+        }
+      },
+      civil: {
+        1: {
+          placement: ["Surveying basics", "Construction materials"],
+          govt: ["Jal Nigam pattern", "Civil aptitude"]
+        },
+        3: {
+          placement: ["AutoCAD", "Site visit"],
+          govt: ["Highway Engg.", "Soil mechanics"]
+        }
+      }
+    };
+
+    function generateRoadmap() {
+      const branch = document.getElementById('branch').value;
+      const year = document.getElementById('year').value;
+      const semester = document.getElementById('semester').value;
+      const goal = document.getElementById('goal').value;
+      const resultDiv = document.getElementById('result');
+
+      if (!branch || !year || !semester || !goal) {
+        resultDiv.innerHTML = `<p style='color: red;'>Please select all fields to generate your roadmap.</p>`;
+        resultDiv.style.display = 'block';
+        return;
+      }
+
+      const yearInt = parseInt(year);
+      const data = suggestions[branch] && suggestions[branch][yearInt] && suggestions[branch][yearInt][goal];
+
+      if (data) {
+        resultDiv.innerHTML = `
+          <h2>Your Roadmap Suggestions (Semester ${semester}):</h2>
+          <ul>${data.map(task => `<li>${task}</li>`).join('')}</ul>
+        `;
+        resultDiv.style.display = 'block';
+      } else {
+        resultDiv.innerHTML = `<p style='color: orange;'>No suggestions found for this combination. Try different inputs.</p>`;
+        resultDiv.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

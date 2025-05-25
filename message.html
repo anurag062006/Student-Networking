@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Messaging</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 1rem;
+      display: flex;
+      height: 90vh;
+      border: 1px solid #ccc;
+      gap: 1rem;
+    }
+    #friendsList {
+      width: 30%;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+    .friend {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+    .friend.selected {
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+    #chatArea {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    #chatHeader {
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 8px;
+      font-weight: bold;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .message .sender {
+      font-weight: bold;
+    }
+    .message .time {
+      font-size: 0.8em;
+      color: #888;
+      margin-left: 5px;
+    }
+    #inputArea {
+      display: flex;
+      gap: 10px;
+    }
+    #inputArea input {
+      flex: 1;
+      padding: 8px;
+      font-size: 1rem;
+    }
+    #inputArea button {
+      padding: 8px 15px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button.back-btn {
+      margin-bottom: 15px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<button class="back-btn" onclick="history.back()">← Back to Friends List</button>
+
+<div id="friendsList"></div>
+
+<div id="chatArea" style="display:none;">
+  <div id="chatHeader"></div>
+  <div id="messages"></div>
+  <div id="inputArea">
+    <input id="messageInput" placeholder="Type your message..." />
+    <button id="sendBtn">Send</button>
+  </div>
+</div>
+
+<script>
+  // Users and friends (simulate data)
+  const users = [
+    { id: 1, name: "Alice" },
+    { id: 2, name: "Bob" },
+    { id: 3, name: "Charlie" },
+    { id: 4, name: "David" }
+  ];
+
+  // Assume logged in user is user 1 (Alice)
+  const loggedInUserId = 1;
+
+  // Friends of Alice (for demo)
+  const friends = [2,3];
+
+  // Messages stored as array of objects
+  // Each message: {from, to, content, date}
+  let messages = [
+    { from: 1, to: 2, content: "Hi Bob!", date: new Date(Date.now() - 600000) },
+    { from: 2, to: 1, content: "Hello Alice!", date: new Date(Date.now() - 590000) },
+    { from: 3, to: 1, content: "Hey Alice, how are you?", date: new Date(Date.now() - 580000) },
+  ];
+
+  const friendsListEl = document.getElementById('friendsList');
+  const chatArea = document.getElementById('chatArea');
+  const chatHeader = document.getElementById('chatHeader');
+  const messagesEl = document.getElementById('messages');
+  const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+
+  let selectedFriendId = null;
+
+  function formatDate(d) {
+    return d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  }
+
+  function renderFriends() {
+    friendsListEl.innerHTML = "";
+    friends.forEach(fid => {
+      const friend = users.find(u => u.id === fid);
+      const div = document.createElement('div');
+      div.className = 'friend';
+      div.textContent = friend.name;
+      div.dataset.id = fid;
+      if (fid === selectedFriendId) div.classList.add('selected');
+      div.onclick = () => selectFriend(fid);
+      friendsListEl.appendChild(div);
+    });
+  }
+
+  function selectFriend(fid) {
+    selectedFriendId = fid;
+    renderFriends();
+    showChat();
+  }
+
+  function showChat() {
+    if (!selectedFriendId) {
+      chatArea.style.display = 'none';
+      return;
+    }
+    chatArea.style.display = 'flex';
+    const friend = users.find(u => u.id === selectedFriendId);
+    chatHeader.textContent = `Chat with ${friend.name}`;
+    renderMessages();
+  }
+
+  function renderMessages() {
+    messagesEl.innerHTML = "";
+    // Show messages between logged in user and selected friend
+    const chatMessages = messages.filter(m => 
+      (m.from === loggedInUserId && m.to === selectedFriendId) || 
+      (m.from === selectedFriendId && m.to === loggedInUserId)
+    );
+    if (chatMessages.length === 0) {
+      messagesEl.innerHTML = "<p>No messages yet. Start the conversation!</p>";
+      return;
+    }
+    chatMessages.forEach(msg => {
+      const div = document.createElement('div');
+      div.className = 'message';
+      div.innerHTML = `
+        <span class="sender">${msg.from === loggedInUserId ? 'You' : users.find(u=>u.id===msg.from).name}</span>:
+        <span>${msg.content}</span>
+        <span class="time">${formatDate(msg.date)}</span>
+      `;
+      messagesEl.appendChild(div);
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  sendBtn.onclick = () => {
+    const text = messageInput.value.trim();
+    if (!text || !selectedFriendId) return;
+    const newMsg = {
+      from: loggedInUserId,
+      to: selectedFriendId,
+      content: text,
+      date: new Date()
+    };
+    messages.push(newMsg);
+    messageInput.value = "";
+    renderMessages();
+  };
+
+  // Initialize page
+  renderFriends();
+</script>
+
+</body>
+</html>
